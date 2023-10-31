@@ -1,0 +1,113 @@
+* {
+  margin: 0;
+  padding: 0;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+}
+
+body {
+  background-image: url("../img/background-woods.gif");
+  background-size: cover;
+  background-repeat: no-repeat;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+.game-state {
+  width: 500px;
+  height: 80px;
+  background-color: black;
+  margin: 60px auto 0 auto;
+  border: 1px solid white;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+}
+
+.game-state h1 {
+  color: white;
+}
+
+.game-board {
+  width: 500px;
+  height: 500px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  margin: 0px auto;
+  -webkit-box-shadow: 4px 4px 32px white;
+          box-shadow: 4px 4px 32px white;
+  border: 8px solid #ebaa42;
+}
+
+.game-board .section {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  width: 100%;
+  height: 12.5%;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+}
+
+.game-board .section .square {
+  width: 100%;
+  height: 100%;
+  background-color: #FFCA7B;
+  border: 1px solid #ebaa42;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+}
+
+.game-board .section .square .light-piece {
+  width: 85%;
+  height: 85%;
+  background-color: white;
+  border-radius: 50%;
+  border: 5px solid gray;
+  -webkit-box-shadow: 2px 2px 15px gray;
+          box-shadow: 2px 2px 15px gray;
+}
+
+.game-board .section .square .dark-piece {
+  width: 85%;
+  height: 85%;
+  background-color: #272727;
+  border-radius: 50%;
+  border: 5px solid gray;
+  -webkit-box-shadow: 2px 2px 15px gray;
+          box-shadow: 2px 2px 15px gray;
+}
+
+.game-board .section:nth-child(odd) .square:nth-child(even) {
+  background-color: #944805;
+}
+
+.game-board .section:nth-child(even) .square:nth-child(odd) {
+  background-color: #944805;
+}
+/*# sourceMappingURL=styles.css.map */

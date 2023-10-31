@@ -1,0 +1,84 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-image: url('../img/background-woods.gif');
+    background-size: cover;
+    background-repeat: no-repeat;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+$board-color-light: #FFCA7B;
+$board-color-dark: #944805;
+$board-shader: #ebaa42;
+
+.game-state {
+    width: 500px;
+    height: 80px;
+    background-color: black;
+    margin: 60px auto 0 auto;
+    border: 1px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    h1 {
+        color: white;
+    }
+}
+
+.game-board {
+    width: 500px;
+    height: 500px;
+    display: flex;
+    flex-direction: column;
+    margin: 0px auto;
+    box-shadow: 4px 4px 32px white;
+    border: 8px solid $board-shader;
+    .section {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        height: 12.5%;
+        align-items: center;
+        justify-content: center;
+        .square {
+            width: 100%;
+            height: 100%;
+            background-color: $board-color-light;
+            border: 1px solid $board-shader;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            .light-piece {
+                width: 85%;
+                height: 85%;
+                background-color: white;
+                border-radius: 50%;
+                border: 5px solid gray;
+                box-shadow: 2px 2px 15px gray;
+            }
+            .dark-piece {
+                width: 85%;
+                height: 85%;
+                background-color: rgb(39, 39, 39);
+                border-radius: 50%;
+                border: 5px solid gray;
+                box-shadow: 2px 2px 15px gray;
+            }
+        }
+    }
+
+    .section:nth-child(odd) {
+        .square:nth-child(even) {
+            background-color: $board-color-dark;
+        }
+    }
+    .section:nth-child(even) {
+        .square:nth-child(odd) {
+            background-color: $board-color-dark;
+        }
+    }
+}
