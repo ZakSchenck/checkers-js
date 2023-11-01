@@ -4,8 +4,17 @@ const lightPieces = document.querySelectorAll(".light-piece");
 const allSquares = document.querySelectorAll(".square");
 // Gets indexes of squares unable to be played
 const falseIndexes = [0, 16, 32, 48, 15, 31, 47, 63];
+
 const gameBoard = document.querySelector(".game-board");
 const turnText = document.getElementById("turn-text");
+// Variables storing the values for which indexes on each piece can be played
+const diagonalUpLeftIndexNum = 7;
+const diagonalUpRightIndexNum = 9;
+const diagonalDownLeftIndexNum = -7;
+const diagonalDownRightIndexNum = -9;
+
+let pieceNum = null;
+let currentSquareIndex;
 let squareIndex;
 let currentPiece = null;
 
@@ -65,18 +74,41 @@ gameBoard.addEventListener("click", (event) =>
   // Runs gameBoardClickEventHandler with certain attributes based on a condition (whose turn it is)
   isDarkPieceTurn
     ? gameBoardClickEventHandler(
-        event,
-        darkPieces,
-        "Black Piece's Turn",
-        "dark-piece"
-      )
+      event,
+      darkPieces,
+      "Black Piece's Turn",
+      "dark-piece"
+    )
     : gameBoardClickEventHandler(
-        event,
-        lightPieces,
-        "White Piece's Turn",
-        "light-piece"
-      )
+      event,
+      lightPieces,
+      "White Piece's Turn",
+      "light-piece"
+    )
 );
+
+/**
+ * Removes checker you hop over
+ * @param {Number} num 
+ * @param {String} piece 
+ */
+const eliminateCheckerConditional = (num, piece) => {
+  if (allSquares[squareIndex - num]?.childNodes[0]?.classList.contains(piece)) {
+    allSquares[squareIndex - num]?.childNodes[0]?.remove();
+  }
+}
+
+/**
+ * Checks where you put your checker, then removes checker you hop over
+ * @param {Boolean} isDarkTurn 
+ * @param {Number} num 
+ * @param {String} pieceType 
+ */
+const isPieceDiagRightOrLeft = (isDarkTurn, num, pieceType) => {
+  if (isDarkTurn && pieceNum === num) {
+    eliminateCheckerConditional(num, pieceType);
+  }
+}
 
 /** Remove pieces from the DOM and add new ones
  * @param {HTMLDivElement} square
@@ -89,6 +121,11 @@ allSquares.forEach((square, index) => {
       return;
     }
     if (square.style.backgroundColor === "green") {
+      isPieceDiagRightOrLeft(isDarkPieceTurn, diagonalUpLeftIndexNum, "light-piece");
+      isPieceDiagRightOrLeft(isDarkPieceTurn, diagonalUpRightIndexNum, "light-piece");
+      isPieceDiagRightOrLeft(!isDarkPieceTurn, diagonalDownRightIndexNum, "dark-piece");
+      isPieceDiagRightOrLeft(!isDarkPieceTurn, diagonalDownLeftIndexNum, "dark-piece");
+
       // Move piece to desired space
       const pieceMove = document.createElement("div");
 
@@ -104,9 +141,11 @@ allSquares.forEach((square, index) => {
         square.style.backgroundColor = null;
       });
 
+
       // Change turns to opposite piece
       isDarkPieceTurn = !isDarkPieceTurn;
     }
+
     console.log(index);
   });
 });
@@ -145,6 +184,7 @@ const checkSkipDiagonalSpaces = (squareIndex, diag, pieceType) => {
     // Checks if the piece type to take is the opponent's piece
     allSquares[squareIndex - diag]?.childNodes[0]?.classList.contains(pieceType)
   ) {
+    pieceNum = diag;
     allSquares[squareIndex - diag * 2].style.backgroundColor = "green";
   }
 };
@@ -183,12 +223,6 @@ const calculateAvailableSquares = (piece, rightDiag, leftDiag) => {
  * @returns {function}
  */
 const checkAvailableSquares = (piece) => {
-  // Variables storing the values for which indexes on each piece can be played
-  const diagonalUpLeftIndexNum = 7;
-  const diagonalUpRightIndexNum = 9;
-  const diagonalDownLeftIndexNum = -7;
-  const diagonalDownRightIndexNum = -9;
-
   // Change background color of previous green squares to null when clicked off of
   allSquares.forEach((square) => {
     square.style.backgroundColor = null;
@@ -196,6 +230,7 @@ const checkAvailableSquares = (piece) => {
 
   currentPiece = piece;
 
+  // If it is dark piece's turn. return which squares turn green. Else is handled for light piece's turn
   if (isDarkPieceTurn) {
     return calculateAvailableSquares(
       piece,
