@@ -1,5 +1,3 @@
-// TODO: piece gets taken if i dont skip over it but its available to skip over
-
 let isDarkPieceTurn = true;
 const darkPieces = document.querySelectorAll(".dark-piece");
 const lightPieces = document.querySelectorAll(".light-piece");
@@ -10,6 +8,9 @@ const diagonalUpLeftIndexNum = 7;
 const diagonalUpRightIndexNum = 9;
 const diagonalDownLeftIndexNum = -7;
 const diagonalDownRightIndexNum = -9;
+
+// Gets indexes of squares unable to be played
+const falseIndexes = [0, 16, 32, 48, 15, 31, 47, 63];
 
 let pieceNum = null;
 let squareIndex;
@@ -67,7 +68,7 @@ const gameBoardClickEventHandler = (event, piece, textForTurn, pieceClass) => {
   }
 };
 /** Click event delegation for each dark piece
- * @param {event}
+ * @param {event} event
  */
 document.querySelector('.game-board').addEventListener("click", (event) =>
   // Runs gameBoardClickEventHandler with certain attributes based on a condition (whose turn it is)
@@ -120,8 +121,8 @@ const calculateAndDisplayScore = () => {
  * @param {Number} num 
  * @param {String} pieceType 
  */
-const isPieceDiagRightOrLeft = (isDarkTurn, num, pieceType) => {
-  if (isDarkTurn && pieceNum === num) {
+const isPieceDiagRightOrLeft = (isDarkTurn, num, pieceType, e) => {
+  if (isDarkTurn && pieceNum === num && e.target === allSquares[squareIndex - pieceNum * 2]) {
     eliminateCheckerConditional(num, pieceType);
     calculateAndDisplayScore();
   }
@@ -157,16 +158,16 @@ removeMovedChecker = (square) => {
  * @param {Number} index
  */
 allSquares.forEach((square, index) => {
-  square.addEventListener("click", () => {
+  square.addEventListener("click", (e) => {
     if (!square) {
       console.error("Error: Clicked square does not exist on the board");
       return;
     }
     if (square.style.backgroundColor === "green") {
-      isPieceDiagRightOrLeft(isDarkPieceTurn, diagonalUpLeftIndexNum, "light-piece");
-      isPieceDiagRightOrLeft(isDarkPieceTurn, diagonalUpRightIndexNum, "light-piece");
-      isPieceDiagRightOrLeft(!isDarkPieceTurn, diagonalDownRightIndexNum, "dark-piece");
-      isPieceDiagRightOrLeft(!isDarkPieceTurn, diagonalDownLeftIndexNum, "dark-piece");
+      isPieceDiagRightOrLeft(isDarkPieceTurn, diagonalUpLeftIndexNum, "light-piece", e);
+      isPieceDiagRightOrLeft(isDarkPieceTurn, diagonalUpRightIndexNum, "light-piece", e);
+      isPieceDiagRightOrLeft(!isDarkPieceTurn, diagonalDownRightIndexNum, "dark-piece", e);
+      isPieceDiagRightOrLeft(!isDarkPieceTurn, diagonalDownLeftIndexNum, "dark-piece", e);
 
       changeCheckerColor(square);
       removeMovedChecker(square);
@@ -185,9 +186,6 @@ allSquares.forEach((square, index) => {
  * @param {Number} diag
  */
 const checkDiagonalSpaces = (squareIndex, diag) => {
-  // Gets indexes of squares unable to be played
-  const falseIndexes = [0, 16, 32, 48, 15, 31, 47, 63];
-
   // Throws error if square does not exist
   if (!allSquares[squareIndex - diag]) {
     console.error("Error: Certain square does not exist to be played");
@@ -196,6 +194,7 @@ const checkDiagonalSpaces = (squareIndex, diag) => {
     !allSquares[squareIndex - diag].hasChildNodes() &&
     !falseIndexes.includes(squareIndex - diag)
   ) {
+    pieceNum = diag;
     allSquares[squareIndex - diag].style.backgroundColor = "green";
   }
 };
@@ -215,7 +214,8 @@ const checkSkipDiagonalSpaces = (squareIndex, diag, pieceType) => {
   if (
     !allSquares[squareIndex - diag * 2].hasChildNodes() &&
     // Checks if the piece type to take is the opponent's piece
-    allSquares[squareIndex - diag]?.childNodes[0]?.classList.contains(pieceType)
+    allSquares[squareIndex - diag]?.childNodes[0]?.classList.contains(pieceType) &&
+    !falseIndexes.includes(squareIndex - diag * 2)
   ) {
     pieceNum = diag;
     allSquares[squareIndex - diag * 2].style.backgroundColor = "green";
@@ -261,16 +261,20 @@ const calculateAvailableSquares = (piece, rightDiag, leftDiag) => {
   checkIfSkipOverIsAvailable(rightDiag, leftDiag);
 };
 
+// Change background color of previous green squares to null when clicked off of
+const removeClickOffBackgroundColor = () => {
+  allSquares.forEach((square) => {
+    square.style.backgroundColor = null;
+  });
+}
+
 /**
  * Calculate which clicked on pieces can move to certain spaces
  * @param {HTMLDivElement} piece
  * @returns {function}
  */
 const checkAvailableSquares = (piece) => {
-  // Change background color of previous green squares to null when clicked off of
-  allSquares.forEach((square) => {
-    square.style.backgroundColor = null;
-  });
+  removeClickOffBackgroundColor();
 
   currentPiece = piece;
 
