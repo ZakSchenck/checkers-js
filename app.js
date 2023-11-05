@@ -1,12 +1,10 @@
+// TODO: piece gets taken if i dont skip over it but its available to skip over
+
 let isDarkPieceTurn = true;
 const darkPieces = document.querySelectorAll(".dark-piece");
 const lightPieces = document.querySelectorAll(".light-piece");
 const allSquares = document.querySelectorAll(".square");
-// Gets indexes of squares unable to be played
-const falseIndexes = [0, 16, 32, 48, 15, 31, 47, 63];
 
-const gameBoard = document.querySelector(".game-board");
-const turnText = document.getElementById("turn-text");
 // Variables storing the values for which indexes on each piece can be played
 const diagonalUpLeftIndexNum = 7;
 const diagonalUpRightIndexNum = 9;
@@ -14,7 +12,6 @@ const diagonalDownLeftIndexNum = -7;
 const diagonalDownRightIndexNum = -9;
 
 let pieceNum = null;
-let currentSquareIndex;
 let squareIndex;
 let currentPiece = null;
 
@@ -47,6 +44,8 @@ conditionalPieceHover(darkPieces);
  * @param {String} pieceClass
  */
 const gameBoardClickEventHandler = (event, piece, textForTurn, pieceClass) => {
+  const turnText = document.getElementById("turn-text");
+
   // Sets hover on checker pieces for whose turn it is
   conditionalPieceHover(piece);
 
@@ -70,7 +69,7 @@ const gameBoardClickEventHandler = (event, piece, textForTurn, pieceClass) => {
 /** Click event delegation for each dark piece
  * @param {event}
  */
-gameBoard.addEventListener("click", (event) =>
+document.querySelector('.game-board').addEventListener("click", (event) =>
   // Runs gameBoardClickEventHandler with certain attributes based on a condition (whose turn it is)
   isDarkPieceTurn
     ? gameBoardClickEventHandler(
@@ -98,6 +97,23 @@ const eliminateCheckerConditional = (num, piece) => {
   }
 }
 
+// Calculates the score for each side, then displays it on the screen.
+const calculateAndDisplayScore = () => {
+  const removedLightPiecesEl = document.getElementById("removed-light-pieces");
+  const removedDarkPiecesEl = document.getElementById("removed-dark-pieces");
+
+  let removedLightPiecesNum = 0;
+  let removedDarkPiecesNum = 0;
+
+  if (isDarkPieceTurn) {
+    removedLightPiecesNum++;
+    removedLightPiecesEl.innerText = removedLightPiecesNum;
+  } else {
+    removedDarkPiecesNum++;
+    removedDarkPiecesEl.innerText = removedDarkPiecesNum;
+  }
+}
+
 /**
  * Checks where you put your checker, then removes checker you hop over
  * @param {Boolean} isDarkTurn 
@@ -107,7 +123,33 @@ const eliminateCheckerConditional = (num, piece) => {
 const isPieceDiagRightOrLeft = (isDarkTurn, num, pieceType) => {
   if (isDarkTurn && pieceNum === num) {
     eliminateCheckerConditional(num, pieceType);
+    calculateAndDisplayScore();
   }
+}
+
+/** 
+ * If dark piece's turn, make checker black. Else, turn it white. This is for adding new checkers
+ * @param {HTMLDivElement} square - Div element of the current piece that is moving 
+ */
+const changeCheckerColor = (square) => {
+  // Move piece to desired space
+  const pieceMove = document.createElement("div");
+  isDarkPieceTurn
+    ? pieceMove.classList.add("dark-piece")
+    : pieceMove.classList.add("light-piece");
+  square.appendChild(pieceMove);
+}
+
+/**
+ * When a checker is moved, we remove its original place from the DOM
+ * @param {HTMLDivElement} square - Div element of the current piece that is moving
+ */
+removeMovedChecker = (square) => {
+  // Remove old element
+  currentPiece.remove();
+  allSquares.forEach((square) => {
+    square.style.backgroundColor = null;
+  });
 }
 
 /** Remove pieces from the DOM and add new ones
@@ -126,21 +168,8 @@ allSquares.forEach((square, index) => {
       isPieceDiagRightOrLeft(!isDarkPieceTurn, diagonalDownRightIndexNum, "dark-piece");
       isPieceDiagRightOrLeft(!isDarkPieceTurn, diagonalDownLeftIndexNum, "dark-piece");
 
-      // Move piece to desired space
-      const pieceMove = document.createElement("div");
-
-      // If dark piece's turn, make checker black. Else, turn it white
-      isDarkPieceTurn
-        ? pieceMove.classList.add("dark-piece")
-        : pieceMove.classList.add("light-piece");
-      square.appendChild(pieceMove);
-
-      // Remove old element
-      currentPiece.remove();
-      allSquares.forEach((square) => {
-        square.style.backgroundColor = null;
-      });
-
+      changeCheckerColor(square);
+      removeMovedChecker(square);
 
       // Change turns to opposite piece
       isDarkPieceTurn = !isDarkPieceTurn;
@@ -156,6 +185,9 @@ allSquares.forEach((square, index) => {
  * @param {Number} diag
  */
 const checkDiagonalSpaces = (squareIndex, diag) => {
+  // Gets indexes of squares unable to be played
+  const falseIndexes = [0, 16, 32, 48, 15, 31, 47, 63];
+
   // Throws error if square does not exist
   if (!allSquares[squareIndex - diag]) {
     console.error("Error: Certain square does not exist to be played");
@@ -179,6 +211,7 @@ const checkSkipDiagonalSpaces = (squareIndex, diag, pieceType) => {
   if (!allSquares[squareIndex - diag * 2]) {
     console.error("Error: Certain square does not exist to be played");
   }
+  console.log(pieceType)
   if (
     !allSquares[squareIndex - diag * 2].hasChildNodes() &&
     // Checks if the piece type to take is the opponent's piece
@@ -188,6 +221,23 @@ const checkSkipDiagonalSpaces = (squareIndex, diag, pieceType) => {
     allSquares[squareIndex - diag * 2].style.backgroundColor = "green";
   }
 };
+
+/**
+ * If the piece you can skip over is an enemy piece, then make that square green.
+ * @param {number} rightDiag // Spaces to right diagonal possible move
+ * @param {number} leftDiag // Spaces to left diagonal possible move 
+*/
+const checkIfSkipOverIsAvailable = (rightDiag, leftDiag) => {
+  // Checks diagonal spaces with a condition where the opponent's light piece can be taken
+  if (isDarkPieceTurn) {
+    checkSkipDiagonalSpaces(squareIndex, leftDiag, "light-piece");
+    checkSkipDiagonalSpaces(squareIndex, rightDiag, "light-piece");
+  } else {
+    // Checks diagonal spaces with a condition where the opponent's dark piece can be taken
+    checkSkipDiagonalSpaces(squareIndex, leftDiag, "dark-piece");
+    checkSkipDiagonalSpaces(squareIndex, rightDiag, "dark-piece");
+  }
+}
 
 /**
  * If statements checking if square is being used or if square is not available
@@ -208,13 +258,7 @@ const calculateAvailableSquares = (piece, rightDiag, leftDiag) => {
   checkDiagonalSpaces(squareIndex, rightDiag);
   checkDiagonalSpaces(squareIndex, leftDiag);
 
-  // Checks diagonal spaces with a condition where the opponent's light piece can be taken
-  checkSkipDiagonalSpaces(squareIndex, leftDiag, "light-piece");
-  checkSkipDiagonalSpaces(squareIndex, rightDiag, "light-piece");
-
-  // Checks diagonal spaces with a condition where the opponent's dark piece can be taken
-  checkSkipDiagonalSpaces(squareIndex, leftDiag, "dark-piece");
-  checkSkipDiagonalSpaces(squareIndex, rightDiag, "dark-piece");
+  checkIfSkipOverIsAvailable(rightDiag, leftDiag);
 };
 
 /**
